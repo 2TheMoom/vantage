@@ -15,7 +15,7 @@ app.use(cors());
 app.use(express.json());
 app.use(express.static(path.join(__dirname, "../public")));
 
-// GET /api/report/latest — returns the latest generated brief
+// GET /api/report/latest
 app.get("/api/report/latest", (req, res) => {
   const latestPath = path.join(REPORTS_DIR, "latest.json");
   if (!fs.existsSync(latestPath)) {
@@ -25,7 +25,7 @@ app.get("/api/report/latest", (req, res) => {
   res.json(report);
 });
 
-// GET /api/report/:date — returns report for a specific date (YYYY-MM-DD)
+// GET /api/report/:date
 app.get("/api/report/:date", (req, res) => {
   const { date } = req.params;
   if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) {
@@ -39,7 +39,7 @@ app.get("/api/report/:date", (req, res) => {
   res.json(report);
 });
 
-// GET /api/reports — lists all available report dates
+// GET /api/reports
 app.get("/api/reports", (req, res) => {
   if (!fs.existsSync(REPORTS_DIR)) {
     return res.json({ reports: [] });
@@ -61,6 +61,21 @@ app.get("/api/health", (req, res) => {
     version: "1.0.0",
     timestamp: new Date().toISOString(),
   });
+});
+
+// POST /api/run — triggers the agent via cron-job.org or manually
+app.post("/api/run", async (req, res) => {
+  const secret = req.headers["x-agent-secret"];
+  if (!process.env.AGENT_SECRET || secret !== process.env.AGENT_SECRET) {
+    return res.status(401).json({ error: "Unauthorized" });
+  }
+  res.json({ status: "Agent started", timestamp: new Date().toISOString() });
+  try {
+    const { runAgent } = await import("./agent.js");
+    await runAgent();
+  } catch (err) {
+    console.error("[Agent] Error during cron trigger:", err);
+  }
 });
 
 // Dashboard route

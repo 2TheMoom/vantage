@@ -8,7 +8,7 @@ import { fileURLToPath } from "url";
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const REPORTS_DIR = path.join(__dirname, "../public/reports");
 
-async function runAgent() {
+export async function runAgent() {
   console.log("\n========================================");
   console.log("  VANTAGE — Research Agent Starting");
   console.log(`  ${new Date().toISOString()}`);
@@ -65,7 +65,11 @@ function getNextIssueNumber() {
   return files.length + 1;
 }
 
-runAgent().catch((err) => {
-  console.error("[Agent] Fatal error:", err);
-  process.exit(1);
-});
+// Only auto-run when executed directly
+const isMain = process.argv[1] && fileURLToPath(import.meta.url) === path.resolve(process.argv[1]);
+if (isMain) {
+  runAgent().catch((err) => {
+    console.error("[Agent] Fatal error:", err);
+    process.exit(1);
+  });
+}

@@ -1,0 +1,29 @@
+services:
+  - type: web
+    name: vantage
+    runtime: node
+    buildCommand: npm install
+    startCommand: npm start
+    envVars:
+      - key: GROQ_API_KEY
+        sync: false
+      - key: ANTHROPIC_API_KEY
+        sync: false
+      - key: MANTLE_RPC_URL
+        value: https://rpc.mantle.xyz
+      - key: PORT
+        value: 3000
+
+  - type: cron
+    name: vantage-agent
+    runtime: node
+    buildCommand: npm install
+    schedule: "0 8 * * *"
+    startCommand: npm run run-agent
+    envVars:
+      - key: GROQ_API_KEY
+        sync: false
+      - key: ANTHROPIC_API_KEY
+        sync: false
+      - key: MANTLE_RPC_URL
+        value: https://rpc.mantle.xyz

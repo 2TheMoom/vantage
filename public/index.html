@@ -1,0 +1,975 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Vantage — Onchain Finance Research Agent</title>
+  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: #E9E6DF;
+      color: #161719;
+      font-family: 'Inter', sans-serif;
+      font-size: 15px;
+      line-height: 1.6;
+      min-height: 100vh;
+      overflow-x: hidden;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ── NAV ── */
+    nav {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 48px;
+      background: #000000;
+      border-bottom: 3px solid #00D395;
+    }
+
+    .logo-link {
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      cursor: pointer;
+    }
+
+    .logo-mark { width: 36px; height: 36px; flex-shrink: 0; }
+
+    .logo-wordmark { display: flex; flex-direction: column; line-height: 1; gap: 3px; }
+
+    .logo-name {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-weight: 800;
+      font-size: 22px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: #F0EDE7;
+    }
+    .logo-name .v-green { color: #00D395; }
+
+    .logo-tag {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 7.5px;
+      letter-spacing: 0.22em;
+      color: #5A5A60;
+      text-transform: uppercase;
+    }
+
+    .status-pill {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: transparent;
+      border: 1px solid #00D39550;
+      border-radius: 999px;
+      padding: 6px 16px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 9px;
+      letter-spacing: 0.14em;
+      color: #00D395;
+      text-transform: uppercase;
+    }
+    .pulse {
+      width: 6px; height: 6px;
+      background: #00D395;
+      border-radius: 50%;
+      animation: pulse 2.2s ease-in-out infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.25; transform: scale(0.7); }
+    }
+
+    main { position: relative; }
+
+    /* ── HERO ── */
+    .hero {
+      background: #000000;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 120px 24px 80px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* Subtle grid on hero */
+    .hero::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(0,211,149,0.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0,211,149,0.04) 1px, transparent 1px);
+      background-size: 56px 56px;
+      pointer-events: none;
+    }
+
+    /* Green glow top-left */
+    .hero::after {
+      content: '';
+      position: absolute;
+      width: 560px; height: 560px;
+      background: radial-gradient(circle, #00D39510 0%, transparent 70%);
+      top: -100px; left: -100px;
+      pointer-events: none;
+    }
+
+    .hero-inner { position: relative; z-index: 1; }
+
+    .hero-eyebrow {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      letter-spacing: 0.28em;
+      text-transform: uppercase;
+      color: #5A5A60;
+      margin-bottom: 32px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+    .hero-eyebrow::before,
+    .hero-eyebrow::after {
+      content: '';
+      display: block;
+      width: 40px; height: 1px;
+      background: #1F3A8F;
+      opacity: 0.6;
+    }
+
+    .hero-title {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-weight: 800;
+      font-size: clamp(60px, 9vw, 108px);
+      line-height: 0.88;
+      letter-spacing: -0.01em;
+      text-transform: uppercase;
+      margin-bottom: 36px;
+      color: #F0EDE7;
+    }
+    .hero-title .outline {
+      color: transparent;
+      -webkit-text-stroke: 1.5px #2A2A30;
+      display: block;
+    }
+    .hero-title .green { color: #00D395; display: block; }
+    .hero-title .solid { display: block; }
+
+    .hero-desc {
+      max-width: 480px;
+      font-size: 14px;
+      color: #5A5A60;
+      line-height: 1.8;
+      margin: 0 auto 52px;
+    }
+    .hero-desc strong { color: #F0EDE7; font-weight: 500; }
+
+    .hero-actions {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    /* Mantle green primary CTA */
+    .btn-primary {
+      background: #00D395;
+      color: #000000;
+      font-family: 'Barlow Condensed', sans-serif;
+      font-weight: 700;
+      font-size: 13px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      padding: 13px 34px;
+      border: none;
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-block;
+      clip-path: polygon(8px 0%, 100% 0%, calc(100% - 8px) 100%, 0% 100%);
+      transition: opacity 0.2s, transform 0.15s;
+    }
+    .btn-primary:hover { opacity: 0.85; transform: translateY(-1px); }
+
+    /* Navy ghost — your brand */
+    .btn-ghost {
+      background: transparent;
+      color: #5A5A60;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      padding: 13px 24px;
+      border: 1px solid #1F3A8F40;
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-block;
+      transition: border-color 0.2s, color 0.2s;
+    }
+    .btn-ghost:hover { border-color: #1F3A8F; color: #F0EDE7; }
+
+    /* ── STATS BAR ── */
+    .stats-bar {
+      display: flex;
+      background: #F0EDE7;
+      border-bottom: 1px solid rgba(22,23,25,0.10);
+      overflow-x: auto;
+    }
+    .stat-item {
+      flex: 1;
+      min-width: 140px;
+      padding: 22px 28px;
+      border-right: 1px solid rgba(22,23,25,0.10);
+      text-align: center;
+    }
+    .stat-item:last-child { border-right: none; }
+    .stat-val {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-weight: 700;
+      font-size: 26px;
+      display: block;
+      letter-spacing: 0.02em;
+    }
+    /* Your brand colors rotating across stats */
+    .stat-item:nth-child(1) .stat-val { color: #00D395; }
+    .stat-item:nth-child(2) .stat-val { color: #1F3A8F; }
+    .stat-item:nth-child(3) .stat-val { color: #B01C2E; }
+    .stat-item:nth-child(4) .stat-val { color: #1A6B3C; }
+    .stat-item:nth-child(5) .stat-val { color: #1F3A8F; }
+
+    .stat-label {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 9px;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: #5A5A60;
+      display: block;
+      margin-top: 4px;
+    }
+
+    /* ── SECTIONS ── */
+    .section {
+      padding: 88px 48px;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .section-eyebrow {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 9px;
+      letter-spacing: 0.26em;
+      text-transform: uppercase;
+      color: #1F3A8F;
+      margin-bottom: 12px;
+    }
+
+    .section-title {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-weight: 700;
+      font-size: clamp(36px, 4vw, 54px);
+      text-transform: uppercase;
+      letter-spacing: 0.02em;
+      line-height: 0.95;
+      margin-bottom: 48px;
+      color: #161719;
+    }
+    .section-title .accent { color: #B01C2E; }
+
+    /* ── LAYER CARDS ── */
+    .layers-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1px;
+      background: rgba(22,23,25,0.12);
+      border: 1px solid rgba(22,23,25,0.12);
+    }
+
+    .layer-card {
+      padding: 36px 30px;
+      background: #F0EDE7;
+      position: relative;
+      transition: transform 0.25s ease, box-shadow 0.25s ease;
+    }
+    .layer-card:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 8px 32px rgba(22,23,25,0.08);
+      z-index: 1;
+    }
+
+    /* Top accent — brand colors */
+    .layer-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 3px;
+    }
+    .layer-card-1::before { background: #00D395; }
+    .layer-card-2::before { background: #1F3A8F; }
+    .layer-card-3::before { background: #B01C2E; }
+
+    .layer-tag {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 9px;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .layer-card-1 .layer-tag { color: #00D395; }
+    .layer-card-2 .layer-tag { color: #1F3A8F; }
+    .layer-card-3 .layer-tag { color: #B01C2E; }
+
+    .layer-dot {
+      width: 5px; height: 5px;
+      border-radius: 50%;
+    }
+    .layer-card-1 .layer-dot { background: #00D395; }
+    .layer-card-2 .layer-dot { background: #1F3A8F; }
+    .layer-card-3 .layer-dot { background: #B01C2E; }
+
+    .layer-title {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-weight: 700;
+      font-size: 20px;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: #161719;
+      margin-bottom: 10px;
+    }
+
+    .layer-desc {
+      font-size: 12.5px;
+      color: #5A5A60;
+      line-height: 1.7;
+      margin-bottom: 24px;
+    }
+
+    .layer-metrics { display: flex; flex-direction: column; gap: 7px; }
+
+    .metric-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 7px 11px;
+      background: #E9E6DF;
+      border: 1px solid rgba(22,23,25,0.08);
+    }
+    .metric-key {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 9px;
+      letter-spacing: 0.12em;
+      color: #5A5A60;
+      text-transform: uppercase;
+    }
+    .metric-val {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      font-weight: 600;
+    }
+    .layer-card-1 .metric-val { color: #00D395; }
+    .layer-card-2 .metric-val { color: #1F3A8F; }
+    .layer-card-3 .metric-val { color: #B01C2E; }
+
+    .layer-engine {
+      margin-top: 20px;
+      padding-top: 16px;
+      border-top: 1px solid rgba(22,23,25,0.08);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 9px;
+      color: #5A5A60;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .engine-badge {
+      padding: 3px 8px;
+      font-size: 9px;
+      letter-spacing: 0.08em;
+      border-radius: 2px;
+      border: 1px solid currentColor;
+    }
+    .layer-card-1 .engine-badge { color: #00D395; }
+    .layer-card-2 .engine-badge { color: #1F3A8F; }
+    .layer-card-3 .engine-badge { color: #B01C2E; }
+
+    /* ── PIPELINE ── */
+    .pipeline-bg {
+      background: #000000;
+      padding: 88px 0;
+    }
+    .pipeline-inner {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 48px;
+    }
+    .pipeline-bg .section-eyebrow { color: #00D395; }
+    .pipeline-bg .section-title { color: #F0EDE7; margin-bottom: 48px; }
+    .pipeline-bg .section-title .accent { color: #00D395; }
+
+    .flow-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1px;
+      background: #1C1C20;
+      border: 1px solid #1C1C20;
+    }
+    .flow-step {
+      padding: 32px 24px;
+      background: #0A0A0E;
+      position: relative;
+    }
+    .flow-num {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-weight: 800;
+      font-size: 48px;
+      line-height: 1;
+      margin-bottom: 14px;
+      letter-spacing: -0.02em;
+      opacity: 0.8;
+    }
+    /* Brand colors on step numbers */
+    .flow-step:nth-child(1) .flow-num { color: #00D395; }
+    .flow-step:nth-child(2) .flow-num { color: #1F3A8F; }
+    .flow-step:nth-child(3) .flow-num { color: #B01C2E; }
+    .flow-step:nth-child(4) .flow-num { color: #1A6B3C; }
+
+    .flow-title {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-weight: 700;
+      font-size: 15px;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: #E8E8F0;
+      margin-bottom: 10px;
+    }
+    .flow-desc {
+      font-size: 12px;
+      color: #5A5A72;
+      line-height: 1.65;
+    }
+    .flow-step::after {
+      content: '→';
+      position: absolute;
+      top: 50%; right: -12px;
+      transform: translateY(-50%);
+      color: #2A2A40;
+      font-size: 14px;
+      z-index: 2;
+    }
+    .flow-step:last-child::after { display: none; }
+
+    /* ── LIVE REPORT ── */
+    .report-preview {
+      background: #F0EDE7;
+      border: 1px solid rgba(22,23,25,0.10);
+      padding: 40px;
+      position: relative;
+    }
+    /* Tricolor top rule */
+    .report-preview::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 3px;
+      background: linear-gradient(90deg, #00D395 33%, #1F3A8F 66%, #B01C2E 100%);
+    }
+
+    .report-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 28px;
+      padding-bottom: 20px;
+      border-bottom: 1px solid rgba(22,23,25,0.10);
+    }
+    .report-label {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 9px;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: #1F3A8F;
+      display: block;
+      margin-bottom: 8px;
+    }
+    .report-title-text {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-weight: 700;
+      font-size: 22px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: #161719;
+    }
+    .report-timestamp {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 9px;
+      color: #5A5A60;
+      letter-spacing: 0.12em;
+      text-align: right;
+      line-height: 1.9;
+    }
+
+    .report-body {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 32px;
+    }
+    .report-section-title {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 9px;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: #5A5A60;
+      margin-bottom: 14px;
+    }
+    .report-text {
+      font-size: 13px;
+      color: #5A5A60;
+      line-height: 1.78;
+    }
+    .report-text em {
+      color: #00D395;
+      font-style: normal;
+      font-weight: 600;
+    }
+
+    .report-data-col { display: flex; flex-direction: column; gap: 8px; }
+    .data-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 9px 13px;
+      background: #E9E6DF;
+      border-left: 2px solid #00D395;
+    }
+    .data-row:nth-child(2) { border-left-color: #1F3A8F; }
+    .data-row:nth-child(3) { border-left-color: #B01C2E; }
+    .data-row:nth-child(4) { border-left-color: #1A6B3C; }
+    .data-row:nth-child(5) { border-left-color: #1F3A8F; }
+
+    .data-row-key {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 9px;
+      letter-spacing: 0.12em;
+      color: #5A5A60;
+      text-transform: uppercase;
+    }
+    .data-row-val {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      font-weight: 600;
+      color: #161719;
+    }
+
+    /* ── BUILT BY ── */
+    .built-by-section {
+      border-top: 1px solid rgba(22,23,25,0.10);
+      background: #000000;
+      padding: 48px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 32px;
+      flex-wrap: wrap;
+    }
+    .built-by-label {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 9px;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: #5A5A60;
+      display: block;
+      margin-bottom: 8px;
+    }
+    .built-by-name {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-weight: 700;
+      font-size: 30px;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: #F0EDE7;
+    }
+    .built-by-name a {
+      color: #00D395;
+      text-decoration: none;
+    }
+    .built-by-name a:hover { text-decoration: underline; }
+
+    .built-by-right {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 9px;
+    }
+    .tag-row { display: flex; gap: 7px; flex-wrap: wrap; justify-content: flex-end; }
+    .tag {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 9px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      padding: 4px 10px;
+      border: 1px solid #1C1C20;
+      color: #5A5A72;
+    }
+
+    /* ── FOOTER ── */
+    footer {
+      background: #000000;
+      border-top: 1px solid #1C1C20;
+      padding: 20px 48px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    .footer-left {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 9px;
+      letter-spacing: 0.14em;
+      color: #5A5A60;
+      text-transform: uppercase;
+    }
+    .footer-right {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 9px;
+      letter-spacing: 0.14em;
+      color: #5A5A60;
+      text-transform: uppercase;
+    }
+
+    /* ── DIVIDER ── */
+    .divider {
+      height: 1px;
+      background: rgba(22,23,25,0.10);
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 900px) {
+      nav { padding: 14px 24px; }
+      .section { padding: 64px 24px; }
+      .pipeline-inner { padding: 0 24px; }
+      .layers-grid { grid-template-columns: 1fr; }
+      .flow-grid { grid-template-columns: 1fr 1fr; }
+      .flow-step::after { display: none; }
+      .report-body { grid-template-columns: 1fr; }
+      .stats-bar { flex-wrap: wrap; }
+      .stat-item { border-right: none; border-bottom: 1px solid rgba(22,23,25,0.10); }
+      .built-by-section { flex-direction: column; align-items: flex-start; }
+      .built-by-right { align-items: flex-start; }
+      footer { padding: 20px 24px; flex-direction: column; align-items: flex-start; }
+    }
+    @media (max-width: 600px) {
+      .flow-grid { grid-template-columns: 1fr; }
+      .hero-actions { flex-direction: column; width: 100%; }
+      .btn-primary, .btn-ghost { width: 100%; text-align: center; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .pulse { animation: none; }
+      * { transition: none !important; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- NAV -->
+  <nav>
+    <a href="#top" class="logo-link" id="home-btn">
+      <svg class="logo-mark" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <polygon points="2,6 18,30 18,19" fill="#B01C2E" opacity="0.95"/>
+        <polygon points="34,6 18,30 18,19" fill="#1F3A8F" opacity="0.95"/>
+        <circle cx="18" cy="30" r="2.4" fill="#00D395"/>
+      </svg>
+      <div class="logo-wordmark">
+        <div class="logo-name"><span class="v-green">V</span>ANTAGE</div>
+        <div class="logo-tag">Onchain Finance Research Agent</div>
+      </div>
+    </a>
+    <div class="status-pill">
+      <div class="pulse"></div>
+      Agent Live
+    </div>
+  </nav>
+
+  <main id="top">
+
+    <!-- HERO (black) -->
+    <section class="hero">
+      <div class="hero-inner">
+        <div class="hero-eyebrow">Onchain Finance Intelligence</div>
+        <h1 class="hero-title">
+          <span class="solid">See The</span>
+          <span class="outline">Whole</span>
+          <span class="green">Market</span>
+        </h1>
+        <p class="hero-desc">
+          Vantage is a three-layer autonomous research agent tracking onchain finance,
+          with <strong>Mantle as the settlement layer</strong>. It fetches live data,
+          builds context, and synthesizes structured research — daily, without prompting.
+        </p>
+        <div class="hero-actions">
+          <a href="/dashboard" class="btn-primary">Open Dashboard</a>
+          <a href="#layers" class="btn-ghost">View Architecture</a>
+        </div>
+      </div>
+    </section>
+
+    <!-- STATS BAR (parchment) -->
+    <div class="stats-bar">
+      <div class="stat-item">
+        <span class="stat-val">$31.76B</span>
+        <span class="stat-label">RWA Market · Jun 2026</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-val">$247.5M</span>
+        <span class="stat-label">Mantle RWA TVL</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-val">+27%</span>
+        <span class="stat-label">Q1 TVL Growth</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-val">3</span>
+        <span class="stat-label">Intelligence Layers</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-val">Daily</span>
+        <span class="stat-label">Report Cadence</span>
+      </div>
+    </div>
+
+    <!-- LAYERS (parchment) -->
+    <section class="section" id="layers">
+      <div class="section-eyebrow">// Architecture</div>
+      <h2 class="section-title">Three Layers.<br><span class="accent">One Brief.</span></h2>
+
+      <div class="layers-grid">
+        <div class="layer-card layer-card-1">
+          <div class="layer-tag"><div class="layer-dot"></div>Layer 01</div>
+          <div class="layer-title">Mantle Ecosystem Metrics</div>
+          <p class="layer-desc">Direct on-chain reads from Mantle RPC and protocol APIs. RWA TVL, xStocks trading volume, Fluxion liquidity depth, and Atomic RFQ redemption flow — raw and timestamped.</p>
+          <div class="layer-metrics">
+            <div class="metric-row">
+              <span class="metric-key">Source</span>
+              <span class="metric-val">Mantle RPC + RWA.xyz</span>
+            </div>
+            <div class="metric-row">
+              <span class="metric-key">Tracks</span>
+              <span class="metric-val">TVL · Volume · Flow</span>
+            </div>
+            <div class="metric-row">
+              <span class="metric-key">Cadence</span>
+              <span class="metric-val">Daily 08:00 UTC</span>
+            </div>
+          </div>
+          <div class="layer-engine">Engine: <span class="engine-badge">GROQ · LLAMA 3.3 70B</span></div>
+        </div>
+
+        <div class="layer-card layer-card-2">
+          <div class="layer-tag"><div class="layer-dot"></div>Layer 02</div>
+          <div class="layer-title">Broader Onchain Finance</div>
+          <p class="layer-desc">Cross-chain RWA market data from RWA.xyz and DeFiLlama. Total tokenized asset flows, competing chain performance, and macro narrative signals contextualized around Mantle.</p>
+          <div class="layer-metrics">
+            <div class="metric-row">
+              <span class="metric-key">Source</span>
+              <span class="metric-val">RWA.xyz · DeFiLlama</span>
+            </div>
+            <div class="metric-row">
+              <span class="metric-key">Tracks</span>
+              <span class="metric-val">Market · Chains · Trends</span>
+            </div>
+            <div class="metric-row">
+              <span class="metric-key">Cadence</span>
+              <span class="metric-val">Daily 08:00 UTC</span>
+            </div>
+          </div>
+          <div class="layer-engine">Engine: <span class="engine-badge">GROQ · LLAMA 3.3 70B</span></div>
+        </div>
+
+        <div class="layer-card layer-card-3">
+          <div class="layer-tag"><div class="layer-dot"></div>Layer 03</div>
+          <div class="layer-title">Research Synthesis</div>
+          <p class="layer-desc">Claude Sonnet takes the structured output from Layers 1 and 2 and generates a publishable research brief — positioning Mantle within the broader onchain finance narrative, with forward signals.</p>
+          <div class="layer-metrics">
+            <div class="metric-row">
+              <span class="metric-key">Input</span>
+              <span class="metric-val">Layer 1 + Layer 2 Data</span>
+            </div>
+            <div class="metric-row">
+              <span class="metric-key">Output</span>
+              <span class="metric-val">Structured Research Brief</span>
+            </div>
+            <div class="metric-row">
+              <span class="metric-key">Format</span>
+              <span class="metric-val">JSON → Card → Report</span>
+            </div>
+          </div>
+          <div class="layer-engine">Engine: <span class="engine-badge">CLAUDE · SONNET</span></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- PIPELINE (black) -->
+    <div class="pipeline-bg" id="how">
+      <div class="pipeline-inner">
+        <div class="section-eyebrow">// Pipeline</div>
+        <h2 class="section-title">How Vantage <span class="accent">Runs</span></h2>
+        <div class="flow-grid">
+          <div class="flow-step">
+            <div class="flow-num">01</div>
+            <div class="flow-title">Fetch</div>
+            <p class="flow-desc">Render cron triggers at 08:00 UTC. Agent pulls live data from Mantle RPC, RWA.xyz, and DeFiLlama simultaneously.</p>
+          </div>
+          <div class="flow-step">
+            <div class="flow-num">02</div>
+            <div class="flow-title">Normalize</div>
+            <p class="flow-desc">Raw data is cleaned and structured into a unified JSON payload. Groq validates and summarizes each layer's output.</p>
+          </div>
+          <div class="flow-step">
+            <div class="flow-num">03</div>
+            <div class="flow-title">Synthesize</div>
+            <p class="flow-desc">Claude Sonnet receives the normalized payload and produces a structured research brief — narrative, data, and forward signal.</p>
+          </div>
+          <div class="flow-step">
+            <div class="flow-num">04</div>
+            <div class="flow-title">Publish</div>
+            <p class="flow-desc">The brief renders as a live report card. Updated daily. No human in the loop between fetch and publish.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- LIVE REPORT (parchment) — pulls from API -->
+    <section class="section" id="report">
+      <div class="section-eyebrow">// Latest Output</div>
+      <h2 class="section-title">Live <span class="accent">Report</span></h2>
+      <div id="live-report-container" style="font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:0.14em;text-transform:uppercase;color:#5A5A60;padding:32px 0;text-align:center;">
+        Loading latest report...
+      </div>
+    </section>
+
+    <!-- BUILT BY (black) -->
+    <div class="built-by-section">
+      <div>
+        <span class="built-by-label">// Built by</span>
+        <div class="built-by-name">
+          <a href="https://x.com/Olumi441" target="_blank" rel="noopener">Abu Olumi</a>
+        </div>
+      </div>
+      <div class="built-by-right">
+        <div class="tag-row">
+          <span class="tag">Groq · Llama 3.3 70B</span>
+          <span class="tag">Claude Sonnet</span>
+          <span class="tag">Render</span>
+        </div>
+        <div class="tag-row">
+          <span class="tag">ERC-8004 Identity</span>
+          <span class="tag">Mantle L2</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- FOOTER -->
+    <footer>
+      <span class="footer-left">Vantage · Onchain Finance Research Agent · 2026</span>
+      <span class="footer-right">Abu Olumi</span>
+    </footer>
+
+  </main>
+
+  <script>
+    document.getElementById('home-btn').addEventListener('click', function(e) {
+      e.preventDefault();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
+
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.style.opacity = '1';
+          entry.target.style.transform = 'translateY(0)';
+        }
+      });
+    }, { threshold: 0.08 });
+
+    document.querySelectorAll('.layer-card, .flow-step').forEach(el => {
+      el.style.opacity = '0';
+      el.style.transform = 'translateY(12px)';
+      el.style.transition = 'opacity 0.45s ease, transform 0.45s ease';
+      observer.observe(el);
+    });
+
+    // Fetch live report from API
+    function fmtTVL(v) {
+      if (!v) return '—';
+      if (v >= 1e9) return '$' + (v/1e9).toFixed(2) + 'B';
+      if (v >= 1e6) return '$' + (v/1e6).toFixed(2) + 'M';
+      return '$' + v;
+    }
+    function fmtDate(iso) {
+      return new Date(iso).toUTCString().replace('GMT','UTC');
+    }
+
+    async function loadLiveReport() {
+      const container = document.getElementById('live-report-container');
+      try {
+        const res = await fetch('/api/report/latest');
+        if (!res.ok) throw new Error('No report yet');
+        const data = await res.json();
+        const { issue, generatedAt, layer1, brief } = data;
+        const changeColor = parseFloat(layer1.raw.tvlChange7d) >= 0 ? '#1A6B3C' : '#B01C2E';
+        const d = new Date(generatedAt);
+        const dateStr = d.toLocaleDateString('en-GB', { day:'numeric', month:'short', year:'numeric' }) + ' · ' + d.toUTCString().slice(17,22) + ' UTC';
+
+        container.innerHTML =
+          '<div class="report-preview">' +
+            '<div style="padding:24px 32px 20px;border-bottom:1px solid rgba(22,23,25,0.08);display:flex;justify-content:space-between;align-items:flex-start;gap:16px;">' +
+              '<div>' +
+                '<div style="font-family:JetBrains Mono,monospace;font-size:8px;letter-spacing:0.22em;text-transform:uppercase;color:#1F3A8F;margin-bottom:8px;">Issue #' + issue + ' &nbsp;·&nbsp; ' + dateStr + '</div>' +
+                '<div style="font-family:Barlow Condensed,sans-serif;font-weight:700;font-size:18px;text-transform:uppercase;letter-spacing:0.03em;color:#161719;line-height:1.15;">' + brief.headline + '</div>' +
+              '</div>' +
+              '<div style="flex-shrink:0;font-family:JetBrains Mono,monospace;font-size:9px;color:#00D395;letter-spacing:0.1em;text-transform:uppercase;white-space:nowrap;">&#9679; Live</div>' +
+            '</div>' +
+            '<div style="padding:18px 32px;display:flex;gap:0;border-bottom:1px solid rgba(22,23,25,0.08);">' +
+              '<div style="flex:1;border-right:1px solid rgba(22,23,25,0.08);padding-right:24px;">' +
+                '<div style="font-family:JetBrains Mono,monospace;font-size:7px;letter-spacing:0.2em;text-transform:uppercase;color:#5A5A60;margin-bottom:4px;">Mantle TVL</div>' +
+                '<div style="font-family:Barlow Condensed,sans-serif;font-weight:700;font-size:26px;color:#00D395;letter-spacing:0.02em;">' + fmtTVL(layer1.raw.tvl) + '</div>' +
+              '</div>' +
+              '<div style="flex:1;padding-left:24px;border-right:1px solid rgba(22,23,25,0.08);padding-right:24px;">' +
+                '<div style="font-family:JetBrains Mono,monospace;font-size:7px;letter-spacing:0.2em;text-transform:uppercase;color:#5A5A60;margin-bottom:4px;">7D Change</div>' +
+                '<div style="font-family:Barlow Condensed,sans-serif;font-weight:700;font-size:26px;letter-spacing:0.02em;color:' + changeColor + ';">' + (layer1.raw.tvlChange7d ? layer1.raw.tvlChange7d + '%' : '—') + '</div>' +
+              '</div>' +
+              '<div style="flex:1;padding-left:24px;">' +
+                '<div style="font-family:JetBrains Mono,monospace;font-size:7px;letter-spacing:0.2em;text-transform:uppercase;color:#5A5A60;margin-bottom:4px;">Forward Signal</div>' +
+                '<div style="font-family:Inter,sans-serif;font-size:11px;color:#161719;line-height:1.5;">' + brief.forwardSignal.split(' ').slice(0,10).join(' ') + '...</div>' +
+              '</div>' +
+            '</div>' +
+            '<div style="padding:16px 32px;display:flex;justify-content:flex-end;">' +
+              '<a href="/dashboard" style="background:#B01C2E;color:#E9E6DF;font-family:Barlow Condensed,sans-serif;font-weight:700;font-size:12px;letter-spacing:0.18em;text-transform:uppercase;padding:10px 26px;text-decoration:none;clip-path:polygon(7px 0%,100% 0%,calc(100% - 7px) 100%,0% 100%);display:inline-block;">Read Full Report &rarr;</a>' +
+            '</div>' +
+          '</div>';
+      } catch(e) {
+        container.innerHTML = '<div style="padding:20px;color:#B01C2E;font-family:JetBrains Mono,monospace;font-size:10px;border-left:2px solid #B01C2E;background:#F0EDE7;">Could not load report. Run the agent first.</div>';
+      }
+    }
+
+    loadLiveReport();
+  </script>
+</body>
+</html>

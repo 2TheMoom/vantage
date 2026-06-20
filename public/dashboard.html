@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Vantage — Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet"/>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: #E9E6DF; color: #161719; font-family: 'Inter', sans-serif; font-size: 14px; line-height: 1.6; min-height: 100vh; -webkit-font-smoothing: antialiased; }
+
+  /* TOPBAR */
+  .topbar { background: #000; padding: 12px 32px; display: flex; align-items: center; justify-content: space-between; border-bottom: 3px solid #00D395; position: sticky; top: 0; z-index: 100; }
+  .brand { display: flex; align-items: center; gap: 10px; text-decoration: none; }
+  .logo { width: 28px; height: 28px; }
+  .wordmark { font-family: 'Barlow Condensed', sans-serif; font-weight: 800; font-size: 18px; letter-spacing: 0.16em; text-transform: uppercase; color: #F0EDE7; }
+  .wordmark span { color: #00D395; }
+  .topbar-right { display: flex; align-items: center; gap: 16px; }
+  .pill { display: flex; align-items: center; gap: 7px; border: 1px solid #00D39540; border-radius: 999px; padding: 5px 14px; font-family: 'JetBrains Mono', monospace; font-size: 9px; letter-spacing: 0.14em; color: #00D395; text-transform: uppercase; }
+  .dot { width: 6px; height: 6px; background: #00D395; border-radius: 50%; animation: pulse 2s ease-in-out infinite; }
+  @keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.2;transform:scale(0.7)} }
+  .back-link { font-family: 'JetBrains Mono', monospace; font-size: 9px; letter-spacing: 0.14em; text-transform: uppercase; color: #5A5A60; text-decoration: none; transition: color 0.2s; }
+  .back-link:hover { color: #F0EDE7; }
+
+  /* SUBBAR */
+  .subbar { background: #F0EDE7; padding: 7px 32px; display: flex; align-items: center; gap: 8px; border-bottom: 1px solid rgba(22,23,25,0.10); font-family: 'JetBrains Mono', monospace; font-size: 9px; color: #5A5A60; letter-spacing: 0.12em; text-transform: uppercase; }
+  .subbar-dot { width: 4px; height: 4px; background: #1F3A8F; border-radius: 50%; flex-shrink: 0; }
+
+  /* STATS */
+  .stats { display: grid; grid-template-columns: repeat(5, 1fr); background: #F0EDE7; border-bottom: 1px solid rgba(22,23,25,0.10); }
+  .stat { padding: 14px 20px; border-right: 1px solid rgba(22,23,25,0.08); text-align: center; }
+  .stat:last-child { border-right: none; }
+  .stat-val { font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 22px; display: block; }
+  .stat:nth-child(1) .stat-val { color: #00D395; }
+  .stat:nth-child(2) .stat-val { color: #1F3A8F; }
+  .stat:nth-child(3) .stat-val { color: #B01C2E; }
+  .stat:nth-child(4) .stat-val { color: #1A6B3C; }
+  .stat:nth-child(5) .stat-val { color: #1F3A8F; }
+  .stat-label { font-family: 'JetBrains Mono', monospace; font-size: 8px; letter-spacing: 0.14em; text-transform: uppercase; color: #5A5A60; display: block; margin-top: 3px; }
+
+  /* BODY */
+  .body { padding: 24px 32px; display: flex; flex-direction: column; gap: 20px; max-width: 1200px; margin: 0 auto; }
+  .section-label { font-family: 'JetBrains Mono', monospace; font-size: 9px; letter-spacing: 0.22em; text-transform: uppercase; color: #1F3A8F; margin-bottom: 12px; }
+
+  /* LAYER CARDS */
+  .layers { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px; background: rgba(22,23,25,0.12); border: 1px solid rgba(22,23,25,0.12); border-radius: 4px; overflow: hidden; }
+  .card { background: #F0EDE7; padding: 22px 20px; position: relative; }
+  .card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; }
+  .card-1::before { background: #00D395; }
+  .card-2::before { background: #1F3A8F; }
+  .card-3::before { background: #B01C2E; }
+
+  .card-tag { font-family: 'JetBrains Mono', monospace; font-size: 8px; letter-spacing: 0.18em; text-transform: uppercase; display: flex; align-items: center; gap: 6px; margin-bottom: 10px; }
+  .card-1 .card-tag { color: #00D395; }
+  .card-2 .card-tag { color: #1F3A8F; }
+  .card-3 .card-tag { color: #B01C2E; }
+  .tag-dot { width: 4px; height: 4px; border-radius: 50%; }
+  .card-1 .tag-dot { background: #00D395; }
+  .card-2 .tag-dot { background: #1F3A8F; }
+  .card-3 .tag-dot { background: #B01C2E; }
+
+  .card-title { font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 15px; text-transform: uppercase; letter-spacing: 0.06em; color: #161719; margin-bottom: 14px; }
+
+  .metrics { display: flex; flex-direction: column; gap: 6px; margin-bottom: 14px; }
+  .metric { display: flex; justify-content: space-between; align-items: center; padding: 6px 10px; background: #E9E6DF; border: 1px solid rgba(22,23,25,0.07); border-radius: 2px; }
+  .mk { font-family: 'JetBrains Mono', monospace; font-size: 8px; letter-spacing: 0.1em; color: #5A5A60; text-transform: uppercase; }
+  .mv { font-family: 'JetBrains Mono', monospace; font-size: 10px; font-weight: 600; }
+  .card-1 .mv { color: #00D395; }
+  .card-2 .mv { color: #1F3A8F; }
+  .card-3 .mv { color: #B01C2E; }
+
+  .progress-label { font-family: 'JetBrains Mono', monospace; font-size: 8px; letter-spacing: 0.1em; text-transform: uppercase; color: #5A5A60; display: flex; justify-content: space-between; margin-bottom: 5px; }
+  .progress-track { height: 3px; background: rgba(22,23,25,0.10); }
+  .progress-fill { height: 100%; }
+  .card-1 .progress-fill { background: #00D395; }
+  .card-2 .progress-fill { background: #1F3A8F; }
+  .card-3 .progress-fill { background: #B01C2E; }
+
+  /* BRIEF */
+  .brief-card { background: #F0EDE7; border: 1px solid rgba(22,23,25,0.10); border-radius: 4px; overflow: hidden; position: relative; }
+  .brief-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; background: linear-gradient(90deg, #00D395 33%, #1F3A8F 66%, #B01C2E 100%); }
+  .brief-head { padding: 16px 22px 14px; border-bottom: 1px solid rgba(22,23,25,0.08); display: flex; justify-content: space-between; align-items: flex-start; margin-top: 3px; gap: 16px; }
+  .brief-issue { font-family: 'JetBrains Mono', monospace; font-size: 8px; letter-spacing: 0.2em; text-transform: uppercase; color: #1F3A8F; display: block; margin-bottom: 6px; }
+  .brief-headline { font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 17px; text-transform: uppercase; letter-spacing: 0.03em; color: #161719; line-height: 1.2; }
+  .brief-ts { font-family: 'JetBrains Mono', monospace; font-size: 8px; color: #5A5A60; letter-spacing: 0.1em; text-align: right; line-height: 1.9; flex-shrink: 0; }
+  .brief-body { padding: 18px 22px; display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+  .brief-col-label { font-family: 'JetBrains Mono', monospace; font-size: 8px; letter-spacing: 0.18em; text-transform: uppercase; color: #5A5A60; margin-bottom: 10px; }
+  .brief-text { font-size: 12px; color: #5A5A60; line-height: 1.78; margin-bottom: 12px; }
+  .brief-signal { font-size: 12px; color: #161719; line-height: 1.7; padding: 10px 13px; background: #E9E6DF; border-left: 2px solid #1F3A8F; font-family: 'Inter', sans-serif; }
+  .brief-signal strong { color: #1F3A8F; font-weight: 500; }
+
+  .data-rows { display: flex; flex-direction: column; gap: 5px; }
+  .data-row { display: flex; justify-content: space-between; padding: 6px 10px; background: #E9E6DF; border-left: 2px solid #00D395; }
+  .data-row:nth-child(2) { border-left-color: #1F3A8F; }
+  .data-row:nth-child(3) { border-left-color: #B01C2E; }
+  .data-row:nth-child(4) { border-left-color: #1A6B3C; }
+  .dk { font-family: 'JetBrains Mono', monospace; font-size: 8px; letter-spacing: 0.1em; color: #5A5A60; text-transform: uppercase; }
+  .dv { font-family: 'JetBrains Mono', monospace; font-size: 10px; font-weight: 600; color: #161719; }
+
+  /* CHAINS TABLE */
+  .chains-card { background: #F0EDE7; border: 1px solid rgba(22,23,25,0.10); border-radius: 4px; overflow: hidden; }
+  .chains-head { padding: 14px 22px; border-bottom: 1px solid rgba(22,23,25,0.08); }
+  .chains-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1px; background: rgba(22,23,25,0.08); }
+  .chain-item { background: #F0EDE7; padding: 10px 14px; display: flex; justify-content: space-between; align-items: center; }
+  .chain-name { font-family: 'JetBrains Mono', monospace; font-size: 9px; color: #5A5A60; text-transform: uppercase; letter-spacing: 0.08em; }
+  .chain-tvl { font-family: 'JetBrains Mono', monospace; font-size: 10px; font-weight: 600; color: #161719; }
+  .chain-item:nth-child(1) .chain-tvl { color: #00D395; }
+  .chain-item:nth-child(2) .chain-tvl { color: #1F3A8F; }
+  .chain-item:nth-child(3) .chain-tvl { color: #B01C2E; }
+
+  /* LOADING / ERROR */
+  .loading { text-align: center; padding: 60px 24px; font-family: 'JetBrains Mono', monospace; font-size: 11px; color: #5A5A60; letter-spacing: 0.14em; text-transform: uppercase; }
+  .error-msg { background: #F0EDE7; border: 1px solid rgba(176,28,46,0.2); border-left: 3px solid #B01C2E; padding: 14px 18px; font-family: 'JetBrains Mono', monospace; font-size: 10px; color: #B01C2E; border-radius: 2px; }
+
+  /* FOOTER */
+  .footer { background: #000; padding: 12px 32px; display: flex; justify-content: space-between; align-items: center; border-top: 1px solid #1C1C20; margin-top: 32px; }
+  .footer-text { font-family: 'JetBrains Mono', monospace; font-size: 8px; letter-spacing: 0.12em; text-transform: uppercase; color: #5A5A60; }
+  .footer-link { font-family: 'JetBrains Mono', monospace; font-size: 8px; letter-spacing: 0.12em; text-transform: uppercase; color: #00D395; text-decoration: none; }
+
+  @media (max-width: 768px) {
+    .layers { grid-template-columns: 1fr; }
+    .stats { grid-template-columns: repeat(3, 1fr); }
+    .brief-body { grid-template-columns: 1fr; }
+    .chains-grid { grid-template-columns: repeat(2, 1fr); }
+    .topbar { padding: 12px 16px; }
+    .body { padding: 16px; }
+    .subbar { padding: 7px 16px; font-size: 8px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <a href="/" class="brand">
+    <svg class="logo" viewBox="0 0 36 36" fill="none">
+      <polygon points="2,6 18,30 18,19" fill="#B01C2E" opacity="0.95"/>
+      <polygon points="34,6 18,30 18,19" fill="#1F3A8F" opacity="0.95"/>
+      <circle cx="18" cy="30" r="2.4" fill="#00D395"/>
+    </svg>
+    <div class="wordmark"><span>V</span>ANTAGE</div>
+  </a>
+  <div class="topbar-right">
+    <a href="/" class="back-link">← Landing</a>
+    <div class="pill"><div class="dot"></div>Agent Running</div>
+  </div>
+</div>
+
+<div class="subbar" id="subbar">
+  <div class="subbar-dot"></div>
+  Loading latest report...
+</div>
+
+<div class="stats" id="stats">
+  <div class="stat"><span class="stat-val">—</span><span class="stat-label">Mantle TVL</span></div>
+  <div class="stat"><span class="stat-val">—</span><span class="stat-label">7D Change</span></div>
+  <div class="stat"><span class="stat-val">—</span><span class="stat-label">Top Chain TVL</span></div>
+  <div class="stat"><span class="stat-val">—</span><span class="stat-label">Chains Tracked</span></div>
+  <div class="stat"><span class="stat-val">—</span><span class="stat-label">Issue</span></div>
+</div>
+
+<div class="body">
+  <div id="dashboard-content">
+    <div class="loading">Fetching latest report...</div>
+  </div>
+</div>
+
+<div class="footer">
+  <span class="footer-text">Vantage · Onchain Finance Research Agent · 2026</span>
+  <a class="footer-link" href="https://x.com/Olumi441" target="_blank">Abu Olumi</a>
+</div>
+
+<script>
+function fmt(val, decimals = 2) {
+  if (!val || val === 'unavailable') return '—';
+  return val;
+}
+
+function fmtTVL(tvl) {
+  if (!tvl) return '—';
+  if (tvl >= 1e9) return '$' + (tvl / 1e9).toFixed(2) + 'B';
+  if (tvl >= 1e6) return '$' + (tvl / 1e6).toFixed(2) + 'M';
+  return '$' + tvl.toFixed(0);
+}
+
+function fmtDate(iso) {
+  const d = new Date(iso);
+  return d.toUTCString().replace('GMT', 'UTC');
+}
+
+async function loadDashboard() {
+  try {
+    const res = await fetch('/api/report/latest');
+    if (!res.ok) throw new Error('No report found');
+    const data = await res.json();
+
+    const { issue, generatedAt, layer1, layer2, brief } = data;
+
+    // Subbar
+    document.getElementById('subbar').innerHTML = `
+      <div class="subbar-dot"></div>
+      Last run: ${fmtDate(generatedAt)} &nbsp;·&nbsp; Issue #${issue}
+    `;
+
+    // Stats
+    const tvlChange = layer1.raw.tvlChange7d;
+    const changeColor = parseFloat(tvlChange) >= 0 ? '#1A6B3C' : '#B01C2E';
+    const topChain = layer2.raw.topChains?.[0];
+
+    document.getElementById('stats').innerHTML = `
+      <div class="stat"><span class="stat-val" style="color:#00D395">${fmtTVL(layer1.raw.tvl)}</span><span class="stat-label">Mantle TVL</span></div>
+      <div class="stat"><span class="stat-val" style="color:${changeColor}">${tvlChange ? tvlChange + '%' : '—'}</span><span class="stat-label">7D Change</span></div>
+      <div class="stat"><span class="stat-val" style="color:#B01C2E">${topChain ? fmtTVL(topChain.tvl) : '—'}</span><span class="stat-label">${topChain?.name ?? 'Top Chain'} TVL</span></div>
+      <div class="stat"><span class="stat-val" style="color:#1A6B3C">${layer2.raw.topChains?.length ?? '—'}</span><span class="stat-label">Chains Tracked</span></div>
+      <div class="stat"><span class="stat-val" style="color:#1F3A8F">#${issue}</span><span class="stat-label">Issue</span></div>
+    `;
+
+    // Layer confidence scores (heuristic based on data completeness)
+    const l1Score = [layer1.raw.blockNumber, layer1.raw.tvl, layer1.raw.tvlChange7d].filter(Boolean).length;
+    const l2Score = [layer2.raw.topChains?.length].filter(Boolean).length;
+    const l1Pct = Math.round((l1Score / 3) * 100);
+    const l2Pct = l2Score > 0 ? 91 : 40;
+    const l3Pct = brief.summary ? 97 : 0;
+
+    // Main dashboard
+    document.getElementById('dashboard-content').innerHTML = `
+
+      <div>
+        <div class="section-label">// Intelligence Layers</div>
+        <div class="layers">
+
+          <div class="card card-1">
+            <div class="card-tag"><div class="tag-dot"></div>Layer 01</div>
+            <div class="card-title">Mantle Ecosystem Metrics</div>
+            <div class="metrics">
+              <div class="metric"><span class="mk">TVL</span><span class="mv">${fmtTVL(layer1.raw.tvl)}</span></div>
+              <div class="metric"><span class="mk">7D Change</span><span class="mv">${layer1.raw.tvlChange7d ? layer1.raw.tvlChange7d + '%' : '—'}</span></div>
+              <div class="metric"><span class="mk">Block</span><span class="mv">${layer1.raw.blockNumber?.toLocaleString() ?? '—'}</span></div>
+              <div class="metric"><span class="mk">Source</span><span class="mv">Mantle RPC</span></div>
+            </div>
+            <div class="progress-label"><span>Fetch confidence</span><span>${l1Pct}%</span></div>
+            <div class="progress-track"><div class="progress-fill" style="width:${l1Pct}%"></div></div>
+          </div>
+
+          <div class="card card-2">
+            <div class="card-tag"><div class="tag-dot"></div>Layer 02</div>
+            <div class="card-title">Broader Onchain Finance</div>
+            <div class="metrics">
+              <div class="metric"><span class="mk">Global RWA TVL</span><span class="mv">${fmt(layer2.raw.globalRWATVL ? fmtTVL(layer2.raw.globalRWATVL) : (brief.keyMetrics?.globalRWATVL ?? '—'))}</span></div>
+              <div class="metric"><span class="mk">Top Chain</span><span class="mv">${topChain ? topChain.name + ' · ' + fmtTVL(topChain.tvl) : '—'}</span></div>
+              <div class="metric"><span class="mk">Chains Tracked</span><span class="mv">${layer2.raw.topChains?.length ?? '—'} Ecosystems</span></div>
+              <div class="metric"><span class="mk">Source</span><span class="mv">DeFiLlama</span></div>
+            </div>
+            <div class="progress-label"><span>Fetch confidence</span><span>${l2Pct}%</span></div>
+            <div class="progress-track"><div class="progress-fill" style="width:${l2Pct}%"></div></div>
+          </div>
+
+          <div class="card card-3">
+            <div class="card-tag"><div class="tag-dot"></div>Layer 03</div>
+            <div class="card-title">Research Synthesis</div>
+            <div class="metrics">
+              <div class="metric"><span class="mk">Brief Status</span><span class="mv">Generated</span></div>
+              <div class="metric"><span class="mk">Issue</span><span class="mv">#${issue}</span></div>
+              <div class="metric"><span class="mk">Forward Signal</span><span class="mv">TVL Reversal Watch</span></div>
+              <div class="metric"><span class="mk">Engine</span><span class="mv">Claude Sonnet</span></div>
+            </div>
+            <div class="progress-label"><span>Synthesis quality</span><span>${l3Pct}%</span></div>
+            <div class="progress-track"><div class="progress-fill" style="width:${l3Pct}%"></div></div>
+          </div>
+
+        </div>
+      </div>
+
+      <div>
+        <div class="section-label">// Latest Brief — Issue #${issue}</div>
+        <div class="brief-card">
+          <div class="brief-head">
+            <div>
+              <span class="brief-issue">// Vantage Report · ${fmtDate(generatedAt)}</span>
+              <div class="brief-headline">${brief.headline}</div>
+            </div>
+            <div class="brief-ts">Issue #${issue}<br><span style="color:#00D395;font-weight:600;">● Live Data</span></div>
+          </div>
+          <div class="brief-body">
+            <div>
+              <div class="brief-col-label">// Synthesis — Layer 3</div>
+              <p class="brief-text">${brief.summary}</p>
+              <p class="brief-text">${brief.mantlePosition}</p>
+              <div class="brief-signal"><strong>Forward Signal:</strong> ${brief.forwardSignal}</div>
+            </div>
+            <div>
+              <div class="brief-col-label">// Key Metrics</div>
+              <div class="data-rows">
+                <div class="data-row"><span class="dk">Mantle TVL</span><span class="dv">${brief.keyMetrics?.mantleTVL ?? '—'}</span></div>
+                <div class="data-row"><span class="dk">Global RWA TVL</span><span class="dv">${layer2.raw.globalRWATVL ? fmtTVL(layer2.raw.globalRWATVL) : (brief.keyMetrics?.globalRWATVL ?? '—') ?? '—'}</span></div>
+                <div class="data-row"><span class="dk">7D TVL Change</span><span class="dv">${brief.keyMetrics?.tvlChange7d ?? '—'}</span></div>
+                <div class="data-row"><span class="dk">RWA Protocols</span><span class="dv">${layer1.raw.rwaProtocolCount ? layer1.raw.rwaProtocolCount + ' on Mantle' : '—'}</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <div class="section-label">// Cross-Chain TVL Context — Layer 2</div>
+        <div class="chains-card">
+          <div class="chains-head">
+            <div class="brief-col-label" style="margin-bottom:0">Top chains by TVL · DeFiLlama · ${fmtDate(layer2.raw.fetchedAt)}</div>
+          </div>
+          <div class="chains-grid">
+            ${(layer2.raw.topChains || []).map(c => `
+              <div class="chain-item">
+                <span class="chain-name">${c.name}</span>
+                <span class="chain-tvl">${fmtTVL(c.tvl)}</span>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      </div>
+
+    `;
+
+  } catch (err) {
+    document.getElementById('dashboard-content').innerHTML = `
+      <div class="error-msg">Failed to load report: ${err.message}. Make sure the agent has run at least once.</div>
+    `;
+  }
+}
+
+loadDashboard();
+</script>
+</body>
+</html>

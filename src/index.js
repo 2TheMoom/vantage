@@ -66,10 +66,8 @@ app.get("/api/health", (req, res) => {
 // POST /api/run — triggers the agent via cron-job.org or manually
 app.post("/api/run", async (req, res) => {
   const secret = req.headers["x-agent-secret"];
-  console.log("[Run] Received secret:", secret);
-  console.log("[Run] Expected secret:", process.env.AGENT_SECRET);
   if (!process.env.AGENT_SECRET || secret !== process.env.AGENT_SECRET) {
-    return res.status(401).json({ error: "Unauthorized", received: secret ? "present" : "missing" });
+    return res.status(401).json({ error: "Unauthorized" });
   }
   res.json({ status: "Agent started", timestamp: new Date().toISOString() });
   try {

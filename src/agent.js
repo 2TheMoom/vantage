@@ -1,7 +1,7 @@
 import { runLayer1 } from "./layers/layer1.js";
 import { runLayer2 } from "./layers/layer2.js";
 import { runLayer3 } from "./layers/layer3.js";
-import { saveReport } from "./store.js";
+import { saveReport, getArchive } from "./store.js";
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
@@ -15,7 +15,7 @@ export async function runAgent() {
   console.log(`  ${new Date().toISOString()}`);
   console.log("========================================\n");
 
-  const issueNumber = getNextIssueNumber();
+  const issueNumber = await getNextIssueNumber();
 
   const [layer1Result, layer2Result] = await Promise.all([
     runLayer1(),
@@ -51,7 +51,18 @@ export async function runAgent() {
   return report;
 }
 
-function getNextIssueNumber() {
+async function getNextIssueNumber() {
+  try {
+    if (process.env.JSONBIN_ARCHIVE_BIN_ID) {
+      const archive = await getArchive();
+      const reports = archive.reports || [];
+      if (reports.length === 0) return 1;
+      const maxIssue = Math.max(...reports.map(r => r.issue || 0));
+      return maxIssue + 1;
+    }
+  } catch {
+    // fallback to local count
+  }
   if (!fs.existsSync(REPORTS_DIR)) return 1;
   const files = fs
     .readdirSync(REPORTS_DIR)

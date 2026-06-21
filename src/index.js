@@ -4,6 +4,7 @@ import path from "path";
 import fs from "fs";
 import { fileURLToPath } from "url";
 import dotenv from "dotenv";
+import { getLatestReport, getArchive, getReportByBinId } from "./store.js";
 dotenv.config();
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -15,55 +16,65 @@ app.use(cors());
 app.use(express.json());
 app.use(express.static(path.join(__dirname, "../public")));
 
-// GET /api/report/latest
-app.get("/api/report/latest", (req, res) => {
-  const latestPath = path.join(REPORTS_DIR, "latest.json");
-  if (!fs.existsSync(latestPath)) {
-    return res.status(404).json({ error: "No report generated yet. Run the agent first." });
+// GET /api/report/latest — from JSONBin first, fallback to local
+app.get("/api/report/latest", async (req, res) => {
+  try {
+    if (process.env.JSONBIN_LATEST_BIN_ID) {
+      const report = await getLatestReport();
+      return res.json(report);
+    }
+    // Local fallback
+    const latestPath = path.join(REPORTS_DIR, "latest.json");
+    if (!fs.existsSync(latestPath)) {
+      return res.status(404).json({ error: "No report generated yet." });
+    }
+    res.json(JSON.parse(fs.readFileSync(latestPath, "utf-8")));
+  } catch (err) {
+    // Try local fallback on JSONBin failure
+    const latestPath = path.join(REPORTS_DIR, "latest.json");
+    if (fs.existsSync(latestPath)) {
+      return res.json(JSON.parse(fs.readFileSync(latestPath, "utf-8")));
+    }
+    res.status(500).json({ error: "Could not fetch report." });
   }
-  const report = JSON.parse(fs.readFileSync(latestPath, "utf-8"));
-  res.json(report);
 });
 
-// GET /api/report/:date
-app.get("/api/report/:date", (req, res) => {
-  const { date } = req.params;
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) {
-    return res.status(400).json({ error: "Invalid date format. Use YYYY-MM-DD." });
+// GET /api/reports — archive list from JSONBin
+app.get("/api/reports", async (req, res) => {
+  try {
+    if (process.env.JSONBIN_ARCHIVE_BIN_ID) {
+      const archive = await getArchive();
+      return res.json({ reports: archive.reports, count: archive.reports.length });
+    }
+    // Local fallback
+    if (!fs.existsSync(REPORTS_DIR)) return res.json({ reports: [] });
+    const files = fs
+      .readdirSync(REPORTS_DIR)
+      .filter((f) => f.startsWith("report-") && f.endsWith(".json") && f !== "latest.json")
+      .map((f) => f.replace("report-", "").replace(".json", ""))
+      .sort().reverse();
+    res.json({ reports: files, count: files.length });
+  } catch (err) {
+    res.json({ reports: [], count: 0 });
   }
-  const reportPath = path.join(REPORTS_DIR, `report-${date}.json`);
-  if (!fs.existsSync(reportPath)) {
-    return res.status(404).json({ error: `No report found for ${date}.` });
-  }
-  const report = JSON.parse(fs.readFileSync(reportPath, "utf-8"));
-  res.json(report);
 });
 
-// GET /api/reports
-app.get("/api/reports", (req, res) => {
-  if (!fs.existsSync(REPORTS_DIR)) {
-    return res.json({ reports: [] });
+// GET /api/report/bin/:binId — fetch specific archived report
+app.get("/api/report/bin/:binId", async (req, res) => {
+  try {
+    const report = await getReportByBinId(req.params.binId);
+    res.json(report);
+  } catch (err) {
+    res.status(404).json({ error: "Report not found." });
   }
-  const files = fs
-    .readdirSync(REPORTS_DIR)
-    .filter((f) => f.startsWith("report-") && f.endsWith(".json") && f !== "latest.json")
-    .map((f) => f.replace("report-", "").replace(".json", ""))
-    .sort()
-    .reverse();
-  res.json({ reports: files, count: files.length });
 });
 
 // GET /api/health
 app.get("/api/health", (req, res) => {
-  res.json({
-    status: "running",
-    agent: "Vantage",
-    version: "1.0.0",
-    timestamp: new Date().toISOString(),
-  });
+  res.json({ status: "running", agent: "Vantage", version: "1.0.0", timestamp: new Date().toISOString() });
 });
 
-// POST /api/run — triggers the agent via cron-job.org or manually
+// POST /api/run — cron trigger
 app.post("/api/run", async (req, res) => {
   const secret = req.headers["x-agent-secret"];
   if (!process.env.AGENT_SECRET || secret !== process.env.AGENT_SECRET) {
@@ -83,7 +94,7 @@ app.get("/dashboard", (req, res) => {
   res.sendFile(path.join(__dirname, "../public/dashboard.html"));
 });
 
-// Fallback — serve index.html for all other routes
+// Fallback
 app.get("*", (req, res) => {
   res.sendFile(path.join(__dirname, "../public/index.html"));
 });

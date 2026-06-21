@@ -1,6 +1,7 @@
 import { runLayer1 } from "./layers/layer1.js";
 import { runLayer2 } from "./layers/layer2.js";
 import { runLayer3 } from "./layers/layer3.js";
+import { saveReport } from "./store.js";
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
@@ -16,13 +17,11 @@ export async function runAgent() {
 
   const issueNumber = getNextIssueNumber();
 
-  // Run Layer 1 and Layer 2 in parallel
   const [layer1Result, layer2Result] = await Promise.all([
     runLayer1(),
     runLayer2(),
   ]);
 
-  // Layer 3 takes both as input
   const brief = await runLayer3(layer1Result, layer2Result);
 
   const report = {
@@ -33,24 +32,19 @@ export async function runAgent() {
     brief,
   };
 
-  // Save to public/reports as dated JSON
+  // Save to local filesystem (fallback)
   if (!fs.existsSync(REPORTS_DIR)) {
     fs.mkdirSync(REPORTS_DIR, { recursive: true });
   }
-
   const today = new Date().toISOString().split("T")[0];
-  const filename = `report-${today}.json`;
-  const filepath = path.join(REPORTS_DIR, filename);
-  fs.writeFileSync(filepath, JSON.stringify(report, null, 2));
+  fs.writeFileSync(path.join(REPORTS_DIR, `report-${today}.json`), JSON.stringify(report, null, 2));
+  fs.writeFileSync(path.join(REPORTS_DIR, "latest.json"), JSON.stringify(report, null, 2));
 
-  // Also save as latest.json for the dashboard to always read
-  fs.writeFileSync(
-    path.join(REPORTS_DIR, "latest.json"),
-    JSON.stringify(report, null, 2)
-  );
+  // Save to JSONBin (persistent across redeploys)
+  await saveReport(report);
 
   console.log("\n========================================");
-  console.log(`  Issue #${issueNumber} saved: ${filename}`);
+  console.log(`  Issue #${issueNumber} complete`);
   console.log("  VANTAGE — Agent Complete");
   console.log("========================================\n");
 

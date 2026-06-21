@@ -296,7 +296,7 @@ async function loadArchive(latestIssue, latestData) {
       // Fetch headlines for each report
       const rows = await Promise.all(reports.map(async (date) => {
         try {
-          const r = await fetch('/api/report/' + date);
+          const r = await fetch('/api/report/bin/' + row.binId);
           const d = await r.json();
           return { date, issue: d.issue, headline: d.brief.headline, tvl: d.layer1.raw.tvl };
         } catch {
@@ -331,7 +331,7 @@ async function loadArchivedReport(date, el) {
   briefPanel.innerHTML = '<div class="loading" style="padding:32px">Loading report...</div>';
 
   try {
-    const res = await fetch('/api/report/' + date);
+    const res = await fetch('/api/report/bin/' + row.binId);
     const data = await res.json();
     briefPanel.innerHTML = renderBrief(data, true);
   } catch {

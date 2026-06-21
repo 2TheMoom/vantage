@@ -305,10 +305,10 @@ async function loadArchive(latestIssue, latestData) {
       }));
 
       archiveHTML = rows.map((row, i) => `
-        <div class="archive-row ${i === 0 ? 'active' : ''}" data-date="${row.date}" onclick="loadArchivedReport('${row.date}', this)">
+        <div class="archive-row ${i === 0 ? 'active' : ''}" data-date="${row.date}" onclick="${row.binId ? 'loadArchivedReport(\'' + row.binId + '\', this)' : ''}">
           <span class="ar-issue">#${row.issue}</span>
           <span class="ar-date">${fmtShortDate(row.date)}</span>
-          <span class="ar-headline">${row.headline}</span>
+          <span class="ar-headline">${row.headline || 'Run agent again to populate'}</span>
           <span class="ar-tvl">${fmtTVL(row.tvl)}</span>
         </div>
       `).join('');

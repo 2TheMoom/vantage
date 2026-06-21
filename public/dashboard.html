@@ -269,7 +269,7 @@ async function loadArchive() {
 
     // reports is now an array of objects from JSONBin: { issue, date, headline, tvl, binId }
     const archiveHTML = reports.map((row, i) => `
-      <div class="archive-row ${i === 0 ? 'active' : ''}" data-binid="${row.binId || ''}" onclick="${row.binId ? 'loadArchivedReport(' + JSON.stringify(row.binId) + ', this)' : ''}">
+      <div class="archive-row ${i === 0 ? 'active' : ''}" data-binid="${row.binId || ''}" onclick="loadArchivedReport('${row.binId}', this)">
         <span class="ar-issue">#${row.issue || '—'}</span>
         <span class="ar-date">${row.date || '—'}</span>
         <span class="ar-headline">${row.headline || 'Report unavailable'}</span>

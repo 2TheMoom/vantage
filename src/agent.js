@@ -40,8 +40,19 @@ export async function runAgent() {
   fs.writeFileSync(path.join(REPORTS_DIR, `report-${today}.json`), JSON.stringify(report, null, 2));
   fs.writeFileSync(path.join(REPORTS_DIR, "latest.json"), JSON.stringify(report, null, 2));
 
-  // Save to JSONBin (persistent across redeploys)
-  await saveReport(report);
+  // Save to JSONBin with retry
+  let saved = false;
+  for (let attempt = 1; attempt <= 3; attempt++) {
+    try {
+      await saveReport(report);
+      saved = true;
+      break;
+    } catch (err) {
+      console.log(`[Agent] JSONBin attempt ${attempt} failed, retrying in 30s...`);
+      await new Promise(r => setTimeout(r, 30000));
+    }
+  }
+  if (!saved) console.error("[Agent] JSONBin save failed after 3 attempts.");
 
   console.log("\n========================================");
   console.log(`  Issue #${issueNumber} complete`);

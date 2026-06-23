@@ -166,7 +166,7 @@
   <div class="stat"><span class="stat-val">—</span><span class="stat-label">7D Change</span></div>
   <div class="stat"><span class="stat-val">—</span><span class="stat-label">Top Chain TVL</span></div>
   <div class="stat"><span class="stat-val">—</span><span class="stat-label">Chains Tracked</span></div>
-  <div class="stat"><span class="stat-val">—</span><span class="stat-label">Issue</span></div>
+  <div class="stat"><span class="stat-val">—</span><span class="stat-label">Research</span></div>
 </div>
 
 <div class="body">
@@ -199,7 +199,7 @@ function renderBrief(data, isArchive) {
   const l3Pct = brief.summary ? 97 : 0;
   const tvlChange = layer1.raw.tvlChange7d;
   const changeColor = parseFloat(tvlChange) >= 0 ? '#1A6B3C' : '#B01C2E';
-  const label = isArchive ? '// Archived Brief — Issue #' + issue : '// Latest Brief — Issue #' + issue;
+  const label = isArchive ? '// Archived Brief — Research #' + issue : '// Latest Research — #' + issue;
 
   return `
     <div>
@@ -210,7 +210,7 @@ function renderBrief(data, isArchive) {
             <span class="brief-issue">// Vantage Report · ${fmtDate(generatedAt)}</span>
             <div class="brief-headline">${brief.headline}</div>
           </div>
-          <div class="brief-ts">Issue #${issue}<br><span style="color:#00D395;font-weight:600;">● ${isArchive ? 'Archive' : 'Live Data'}</span></div>
+          <div class="brief-ts">Research #${issue}<br><span style="color:#00D395;font-weight:600;">● ${isArchive ? 'Archive' : 'Live Data'}</span></div>
         </div>
         <div class="brief-body">
           <div>
@@ -270,7 +270,7 @@ async function loadArchive() {
     // reports is now an array of objects from JSONBin: { issue, date, headline, tvl, binId }
     const archiveHTML = reports.map((row, i) => `
       <div class="archive-row ${i === 0 ? 'active' : ''}" data-binid="${row.binId || ''}" onclick="loadArchivedReport('${row.binId}', this)">
-        <span class="ar-issue">#${row.issue || '—'}</span>
+        <span class="ar-issue">R#${row.issue || '—'}</span>
         <span class="ar-date">${row.date || '—'}</span>
         <span class="ar-headline">${row.headline || 'Report unavailable'}</span>
         <span class="ar-tvl">${fmtTVL(row.mantleTVL)}</span>
@@ -322,7 +322,7 @@ async function loadDashboard() {
       <div class="stat"><span class="stat-val" style="color:${changeColor}">${tvlChange ? tvlChange + '%' : '—'}</span><span class="stat-label">7D Change</span></div>
       <div class="stat"><span class="stat-val" style="color:#B01C2E">${topChain ? fmtTVL(topChain.tvl) : '—'}</span><span class="stat-label">${topChain?.name ?? 'Top Chain'} TVL</span></div>
       <div class="stat"><span class="stat-val" style="color:#1A6B3C">${layer2.raw.topChains?.length ?? '—'}</span><span class="stat-label">Chains Tracked</span></div>
-      <div class="stat"><span class="stat-val" style="color:#1F3A8F">#${issue}</span><span class="stat-label">Issue</span></div>
+      <div class="stat"><span class="stat-val" style="color:#1F3A8F">R#${issue}</span><span class="stat-label">Research</span></div>
     `;
 
     const l1Score = [layer1.raw.blockNumber, layer1.raw.tvl, layer1.raw.tvlChange7d].filter(Boolean).length;
@@ -364,7 +364,7 @@ async function loadDashboard() {
             <div class="card-title">Research Synthesis</div>
             <div class="metrics">
               <div class="metric"><span class="mk">Brief Status</span><span class="mv">Generated</span></div>
-              <div class="metric"><span class="mk">Issue</span><span class="mv">#${issue}</span></div>
+              <div class="metric"><span class="mk">Research</span><span class="mv">#${issue}</span></div>
               <div class="metric"><span class="mk">Forward Signal</span><span class="mv">TVL Reversal Watch</span></div>
               <div class="metric"><span class="mk">Engine</span><span class="mv">Claude Sonnet</span></div>
             </div>
@@ -380,7 +380,7 @@ async function loadDashboard() {
         <div class="section-label">// Report Archive</div>
         <div class="archive-card">
           <div class="archive-head">
-            <div class="brief-col-label" style="margin-bottom:0">All Issues · Autonomous Daily Runs</div>
+            <div class="brief-col-label" style="margin-bottom:0">All Research · Autonomous Daily Runs</div>
             <span class="archive-count" id="archive-count">Loading...</span>
           </div>
           <div class="archive-list" id="archive-list">

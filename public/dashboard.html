@@ -108,6 +108,12 @@
   .ar-headline { font-family: 'Inter', sans-serif; font-size: 12px; color: #161719; line-height: 1.4; }
   .ar-tvl { font-family: 'JetBrains Mono', monospace; font-size: 10px; font-weight: 600; color: #1F3A8F; text-align: right; }
   .archive-empty { padding: 24px 22px; font-family: 'JetBrains Mono', monospace; font-size: 10px; color: #5A5A60; text-transform: uppercase; letter-spacing: 0.12em; }
+  .archive-pagination { display: flex; align-items: center; justify-content: space-between; padding: 10px 22px; border-top: 1px solid rgba(22,23,25,0.08); }
+  .archive-page-info { font-family: 'JetBrains Mono', monospace; font-size: 9px; letter-spacing: 0.12em; text-transform: uppercase; color: #5A5A60; }
+  .archive-page-btns { display: flex; gap: 8px; }
+  .archive-page-btn { background: transparent; border: 1px solid rgba(22,23,25,0.16); border-radius: 2px; padding: 5px 13px; font-family: 'JetBrains Mono', monospace; font-size: 9px; letter-spacing: 0.12em; text-transform: uppercase; color: #161719; cursor: pointer; transition: background 0.15s, opacity 0.15s; }
+  .archive-page-btn:hover:not(:disabled) { background: #E9E6DF; }
+  .archive-page-btn:disabled { opacity: 0.35; cursor: not-allowed; }
 
   .chains-card { background: #F0EDE7; border: 1px solid rgba(22,23,25,0.10); border-radius: 4px; overflow: hidden; }
   .chains-head { padding: 14px 22px; border-bottom: 1px solid rgba(22,23,25,0.08); }
@@ -258,6 +264,10 @@ function renderChains(layer2) {
   `;
 }
 
+const ARCHIVE_PAGE_SIZE = 5;
+let archiveReports = [];
+let archivePage = 1;
+
 async function loadArchive() {
   try {
     const res = await fetch('/api/reports');
@@ -266,24 +276,59 @@ async function loadArchive() {
     if (!reports || reports.length === 0) {
       document.getElementById('archive-list').innerHTML = '<div class="archive-empty">No archived reports yet. Check back tomorrow.</div>';
       document.getElementById('archive-count').textContent = '0 reports';
+      document.getElementById('archive-pagination').style.display = 'none';
       return;
     }
 
     // reports is now an array of objects from JSONBin: { issue, date, headline, tvl, binId }
-    const archiveHTML = reports.map((row, i) => `
-      <div class="archive-row ${i === 0 ? 'active' : ''}" data-binid="${row.binId || ''}" onclick="loadArchivedReport('${row.binId}', this)">
-        <span class="ar-issue">R#${row.issue || '—'}</span>
-        <span class="ar-date">${row.date || '—'}</span>
-        <span class="ar-headline">${row.headline || 'Report unavailable'}</span>
-        <span class="ar-tvl">${fmtTVL(row.mantleTVL)}</span>
-      </div>
-    `).join('');
-
-    document.getElementById('archive-list').innerHTML = archiveHTML;
+    archiveReports = reports;
+    archivePage = 1;
     document.getElementById('archive-count').textContent = reports.length + ' report' + (reports.length !== 1 ? 's' : '');
+    renderArchivePage();
   } catch {
     document.getElementById('archive-list').innerHTML = '<div class="archive-empty">Could not load archive.</div>';
+    document.getElementById('archive-pagination').style.display = 'none';
   }
+}
+
+function renderArchivePage() {
+  const totalPages = Math.max(1, Math.ceil(archiveReports.length / ARCHIVE_PAGE_SIZE));
+  archivePage = Math.min(Math.max(1, archivePage), totalPages);
+
+  const start = (archivePage - 1) * ARCHIVE_PAGE_SIZE;
+  const pageRows = archiveReports.slice(start, start + ARCHIVE_PAGE_SIZE);
+
+  const archiveHTML = pageRows.map((row, i) => `
+    <div class="archive-row ${start + i === 0 ? 'active' : ''}" data-binid="${row.binId || ''}" onclick="loadArchivedReport('${row.binId}', this)">
+      <span class="ar-issue">R#${row.issue || '—'}</span>
+      <span class="ar-date">${row.date || '—'}</span>
+      <span class="ar-headline">${row.headline || 'Report unavailable'}</span>
+      <span class="ar-tvl">${fmtTVL(row.mantleTVL)}</span>
+    </div>
+  `).join('');
+
+  document.getElementById('archive-list').innerHTML = archiveHTML;
+
+  const pagination = document.getElementById('archive-pagination');
+  if (archiveReports.length <= ARCHIVE_PAGE_SIZE) {
+    pagination.style.display = 'none';
+    return;
+  }
+
+  pagination.style.display = 'flex';
+  pagination.innerHTML = `
+    <span class="archive-page-info">Page ${archivePage} of ${totalPages}</span>
+    <div class="archive-page-btns">
+      <button class="archive-page-btn" onclick="changeArchivePage(-1)" ${archivePage <= 1 ? 'disabled' : ''}>← Prev</button>
+      <button class="archive-page-btn" onclick="changeArchivePage(1)" ${archivePage >= totalPages ? 'disabled' : ''}>Next →</button>
+    </div>
+  `;
+}
+
+function changeArchivePage(delta) {
+  archivePage += delta;
+  renderArchivePage();
+  document.getElementById('archive-list').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 }
 
 async function loadArchivedReport(binId, el) {
@@ -388,6 +433,7 @@ async function loadDashboard() {
           <div class="archive-list" id="archive-list">
             <div class="archive-empty">Loading archive...</div>
           </div>
+          <div class="archive-pagination" id="archive-pagination" style="display:none"></div>
         </div>
       </div>
 
